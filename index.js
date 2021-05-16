@@ -45,7 +45,7 @@ client.connect(err => {
     }
 
 
-    app.post('/addPeople', (req, res) => {
+    app.post('/addPeople', verifyJWT, (req, res) => {
         const people = req.body;
         collection.insertOne(people)
             .then(result => {
@@ -60,7 +60,7 @@ client.connect(err => {
             })
     })
 
-    app.delete('/deletePeople/:id', (req, res) => {
+    app.delete('/deletePeople/:id', verifyJWT, (req, res) => {
         const id = ObjectID(req.params.id);
         collection.findOneAndDelete({ _id: id })
             .then(res => res.json())

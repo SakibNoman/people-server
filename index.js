@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const ObjectID = require('mongodb').ObjectID;
 require('dotenv').config()
+const jwt = require('jsonwebtoken')
 
 
 
@@ -23,6 +24,27 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 client.connect(err => {
     const collection = client.db("peoples").collection("peopleList");
+
+    const verifyJWT = (req, res, next) => {
+        const token = req.headers["x-access-token"]
+
+        if (!token) {
+            res.send("You have not a token")
+        }
+        else {
+            jwt.verify(token, "jwtSecret", (err, decoded) => {
+                if (err) {
+                    res.json({ auth: false, message: "failed" })
+                }
+                else {
+                    req.userId = decoded.id;
+                    next();
+                }
+            })
+        }
+    }
+
+
     app.post('/addPeople', (req, res) => {
         const people = req.body;
         collection.insertOne(people)
@@ -31,7 +53,7 @@ client.connect(err => {
             })
     })
 
-    app.get('/peoples', (req, res) => {
+    app.get('/peoples', verifyJWT, (req, res) => {
         collection.find({})
             .toArray((err, documents) => {
                 res.send(documents)
@@ -43,6 +65,20 @@ client.connect(err => {
         collection.findOneAndDelete({ _id: id })
             .then(res => res.json())
             .then(data => console.log("successfully deleted"))
+    })
+
+    app.post('/login', (req, res) => {
+        const data = req.body;
+        if (data.email === 'a@a.com' && data.password === '123') {
+            const id = 12345;
+            const token = jwt.sign({ id }, "jwtSecret", {
+                expiresIn: 300
+            })
+            res.json({ auth: true, email: 'a@a.com', token: token })
+        }
+        else {
+            res.send({ auth: false })
+        }
     })
 
 });

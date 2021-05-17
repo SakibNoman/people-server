@@ -69,7 +69,7 @@ client.connect(err => {
 
     app.post('/login', (req, res) => {
         const data = req.body;
-        if (data.email === 'a@a.com' && data.password === '123') {
+        if (data.email === 'admin@namasys.co' && data.password === 'admin123') {
             const id = 12345;
             const token = jwt.sign({ id }, "jwtSecret", {
                 expiresIn: 300

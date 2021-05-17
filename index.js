@@ -9,7 +9,7 @@ const jwt = require('jsonwebtoken')
 
 
 const app = express()
-const port = 5000
+const port = process.env.PORT || 5000
 
 app.use(bodyParser.json());
 app.use(cors());
@@ -84,6 +84,6 @@ client.connect(err => {
 });
 
 
-app.listen(process.env.PORT || port, () => {
+app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`)
 })

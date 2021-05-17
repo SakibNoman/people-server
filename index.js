@@ -18,13 +18,19 @@ app.get('/', (req, res) => {
     res.send('Hello World!')
 })
 
-
+//mongodb uri
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.cqpfg.mongodb.net/peoples?retryWrites=true&w=majority`;
 
+//mongodb client
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+
+//db connect
 client.connect(err => {
+
+    //db collection
     const collection = client.db("peoples").collection("peopleList");
 
+    //middleware that verifying jwt token
     const verifyJWT = (req, res, next) => {
         const token = req.headers["x-access-token"]
 
@@ -44,7 +50,7 @@ client.connect(err => {
         }
     }
 
-
+    //api to add people in db
     app.post('/addPeople', verifyJWT, (req, res) => {
         const people = req.body;
         collection.insertOne(people)
@@ -53,6 +59,7 @@ client.connect(err => {
             })
     })
 
+    //api to find all peoples
     app.get('/peoples', verifyJWT, (req, res) => {
         collection.find({})
             .toArray((err, documents) => {
@@ -60,6 +67,7 @@ client.connect(err => {
             })
     })
 
+    //api to delete specific people
     app.delete('/deletePeople/:id', verifyJWT, (req, res) => {
         const id = ObjectID(req.params.id);
         collection.findOneAndDelete({ _id: id })
@@ -67,6 +75,7 @@ client.connect(err => {
             .then(data => console.log("successfully deleted"))
     })
 
+    //api to login
     app.post('/login', (req, res) => {
         const data = req.body;
         if (data.email === 'admin@namasys.co' && data.password === 'admin123') {
@@ -74,7 +83,7 @@ client.connect(err => {
             const token = jwt.sign({ id }, "jwtSecret", {
                 expiresIn: 300
             })
-            res.json({ auth: true, email: 'a@a.com', token: token })
+            res.json({ auth: true, email: 'admin@namasys.co', token: token })
         }
         else {
             res.send({ auth: false })
